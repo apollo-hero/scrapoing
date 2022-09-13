@@ -182,8 +182,8 @@ const scraperObject = {
 					// searchPage.click('#transmissions-MANUAL_GEAR-ds');
 				}
 				// await searchPage.$eval('#selectMake1-ds', el => el.value = brand[0]);
-
-				searchPage.click('#dsp-upper-search-btn');
+				await searchPage.waitForSelector('#dsp-upper-search-btn');
+				await searchPage.click('#dsp-upper-search-btn');
 			}
 		//}
 

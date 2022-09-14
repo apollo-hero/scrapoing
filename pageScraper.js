@@ -66,18 +66,18 @@ const scraperObject = {
 			});
 
 			await newPage.evaluate(()=>{
-			    let listing = document.querySelectorAll('listing');
+			    let listing = document.querySelectorAll('.listing');
 			    for (list of listing){
 				let brand = list.querySelector('.left.listing__title > a').textContent;
-				let reg_date = list.el.querySelector('.table > ul > li:first-child > span:first-child').textContent;
+				let reg_date = list.querySelector('.table > ul > li:first-child > span:first-child').textContent;
 				let mile = list.querySelector('.table > ul > li:first-child > span:nth-child(2)').textContent;
-				let door = list.querySelector('.table > ul >li:nth-child(2) > span:nth-child(4)') ? el.querySelector('.table > ul >li:nth-child(2) > span:nth-child(2)').textContent : el.querySelector('.table > ul >li:nth-child(2) > span:first-child').textContent;
-				let seat = list.querySelector('.table > ul >li:nth-child(2) > span:nth-child(4)') ? el.querySelector('.table > ul >li:nth-child(2) > span:nth-child(3)').textContent : el.querySelector('.table > ul >li:nth-child(2) > span:nth-child(2)').textContent;
+				let door = list.querySelector('.table > ul >li:nth-child(2) > span:nth-child(4)') ? list.querySelector('.table > ul >li:nth-child(2) > span:nth-child(2)').textContent : list.querySelector('.table > ul >li:nth-child(2) > span:first-child').textContent;
+				let seat = list.querySelector('.table > ul >li:nth-child(2) > span:nth-child(4)') ? list.querySelector('.table > ul >li:nth-child(2) > span:nth-child(3)').textContent : list.querySelector('.table > ul >li:nth-child(2) > span:nth-child(2)').textContent;
 				let type = list.querySelector('.table > ul >li:nth-child(2) > span:last-child').textContent;
 				let engine = list.querySelector('.table > ul >li:nth-child(3) > span:first-child').textContent;
 				let fuel = list.querySelector('.table > ul >li:nth-child(3) > span:nth-child(2)').textContent;
 				let hp = list.querySelector('.table > ul >li:nth-child(3) > span:last-child').textContent;
-				list.querySelector('.left.listing__title > a').innerHTML += '<span><a href="http://localhost:5600/serach?brand=' + brand + '&reg_date=' + reg_date + '&mile=' + mile + '&seat=' + seat + '&door=' + door + '&engine=' + engine + '&hp=' + hp + '&type=' + type + '" target="_blank">Here</a></span>';
+				list.querySelector('.left.listing__title > a').innerHTML += '<span><a href="http://localhost:5600/serach?brand=' + brand + '&date=' + reg_date + '&mile=' + mile + '&seat=' + seat + '&door=' + door + '&engine=' + engine + '&hp=' + hp + '&type=' + type + '" target="_blank">Here</a></span>';
 			    }
 			    
 			})

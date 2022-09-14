@@ -1,3 +1,15 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const path = require('path');
+
+const app = express();
+// install middleware
+app.use(cors());
+app.use(bodyParser.urlencoded({extended:false}))
+app.use(bodyParser.json());
+app.use(bodyParser.raw());
+
 const browserObject = require('./browser');
 const scraperController = require('./pageController');
 
@@ -5,4 +17,14 @@ const scraperController = require('./pageController');
 let browserInstance = browserObject.startBrowser();
 
 // Pass the browser instance to the scraper controller
-scraperController(browserInstance)
+app.get('/search', function(req, res){
+   const data = req.body;
+   const path = data.path;
+   res.send("Hello World!");
+});
+
+const port = process.env.PORT || 5600;
+const server = app.listen(port,()=>{
+    console.log(`server up and running on port ${port}!`);
+    scraperController(browserInstance);
+});

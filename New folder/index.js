@@ -19,11 +19,13 @@ const scraperController = require('./pageController');
 let browserInstance = browserObject.startBrowser();
 
 // Pass the browser instance to the scraper controller
-// app.get('/search', function(req, res){
-//    const data = req.body;
-//    const path = data.path;
-//    res.send("Hello World!");
-// });
+//app.get('/search', function(req, res){
+  // const data = req.body;
+   //const path = data.path;
+  // res.send("Hello World!");
+//});
+
+app.use('/public', express.static('public'));
 
 const port = process.env.PORT || 5600;
 const server = app.listen(port,()=>{

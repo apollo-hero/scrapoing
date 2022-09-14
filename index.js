@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+const router =  require('./router');
 
 const app = express();
 // install middleware
@@ -10,6 +11,7 @@ app.use(bodyParser.urlencoded({extended:false}))
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
+app.use('/search',router);
 const browserObject = require('./browser');
 const scraperController = require('./pageController');
 

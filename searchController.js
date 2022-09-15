@@ -20,6 +20,18 @@ const search = async (req, res) => {
         return links;
     }, make[0]);
 
+   let makeCode1 = await searchPage.$$eval('#selectMake1-ds > option', (links, t) => {
+        // Make sure the book to be scraped is in stock
+        links = links.filter(link => link.textContent == t)
+        // Extract the links from the data
+        links = links.map(el => el.value);
+        return links;
+    }, make[0] + " " + make[1]);
+
+    if(makeCode1.length != 0){
+	makeCode = makeCode1;
+    }
+
     console.log("code:", makeCode);
     await searchPage.select('#selectMake1-ds', makeCode[0]);
 

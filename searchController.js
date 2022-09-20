@@ -12,17 +12,33 @@ const search = async (req, res) => {
     await searchPage.goto('https://suchen.mobile.de/fahrzeuge/search.html?dam=0&sb=rel&vc=Car');
     var make = item.brand.trim().split(" ");
 
+    let temp_model = "";
+    switch(make[0]) {
+        case "Citroen":
+            temp_model = "Citroën";
+          break;
+        case "220I GRAN":
+          // code block
+          temp_model = "220 GRAN";
+          break;
+        default:
+          // code block
+          temp_model = make[0];
+      }
+    
+    temp_model = temp_model.toUpperCase();
+
     let makeCode = await searchPage.$$eval('#selectMake1-ds > option', (links, t) => {
         // Make sure the book to be scraped is in stock
-        links = links.filter(link => link.textContent == t)
+        links = links.filter(link => link.textContent.trim().toUpperCase() == t)
         // Extract the links from the data
         links = links.map(el => el.value);
         return links;
-    }, make[0]);
+    }, temp_model);
 
    let makeCode1 = await searchPage.$$eval('#selectMake1-ds > option', (links, t) => {
         // Make sure the book to be scraped is in stock
-        links = links.filter(link => link.textContent == t)
+        links = links.filter(link => link.textContent.trim().toUpperCase() == t)
         // Extract the links from the data
         links = links.map(el => el.value);
         return links;
@@ -46,9 +62,18 @@ const search = async (req, res) => {
     }, model);
     console.log(modelCode);
     let model1 = (make[1] + " " + make[2]).toUpperCase();
-    if (model1 == "PRO CEED"){
-        model1 = "pro cee'd / ProCeed";
-    }
+
+    switch(model1) {
+        case "PRO CEED":
+            model1 = "pro cee'd / ProCeed";
+          break;
+        case "220I GRAN":
+          // code block
+          model1 = "220 GRAN";
+          break;
+        default:
+          // code block
+      }
     let modelCode1 = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
         // Make sure the book to be scraped is in stock
         links = links.filter(link => link.textContent.trim().toUpperCase() == t)
@@ -56,7 +81,7 @@ const search = async (req, res) => {
         links = links.map(el => el.value);
         return links;
     }, model1);
-    let model2 = (make[1] + " " + make[2] + " " + make[3]).toUpperCase();
+    let model2 = (model1 + " " + make[3]).toUpperCase();
     let modelCode2 = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
         // Make sure the book to be scraped is in stock
         links = links.filter(link => link.textContent.trim().toUpperCase() == t)
@@ -148,8 +173,11 @@ const search = async (req, res) => {
 	prices = prices.map(el => el.querySelector('span:first-child').textContent);
 	return prices;
     });
-	console.log("price:", prices);
-    return res.status(200).json({price: prices});
+    let price = prices.reduce((a, b) => parseFloat(a) + parseFloat(b), 0)/prices.length;
+    price = price.toFixed(3);
+	console.log("prices:", prices);
+    console.log("price:", price);
+    return res.status(200).json({price: price + " €"});
 }
 module.exports = {
     search

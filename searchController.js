@@ -46,6 +46,9 @@ const search = async (req, res) => {
     }, model);
     console.log(modelCode);
     let model1 = (make[1] + " " + make[2]).toUpperCase();
+    if (model1 == "PRO CEED"){
+        model1 = "pro cee'd / ProCeed";
+    }
     let modelCode1 = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
         // Make sure the book to be scraped is in stock
         links = links.filter(link => link.textContent.trim().toUpperCase() == t)
@@ -87,8 +90,8 @@ const search = async (req, res) => {
     var year = item.date.trim().split(".");
     await searchPage.$eval('#minFirstRegistrationDate', (el, t) => el.value = t[2], year);
     var seat = item.seat.trim().split(" ");
-    await searchPage.$eval('#minSeats', (el, t) => el.value = t[0], seat);
-    await searchPage.$eval('#maxSeats', (el, t) => el.value = t[0], seat);
+    // await searchPage.$eval('#minSeats', (el, t) => el.value = t[0], seat);
+    // await searchPage.$eval('#maxSeats', (el, t) => el.value = t[0], seat);
     var door = item.door.trim().split(" ")[0];
     var value;
     if (door == '2' || door == '3') {
@@ -98,7 +101,7 @@ const search = async (req, res) => {
     } else if (door == '6' || door == '7') {
         value = "SIX_OR_SEVEN";
     }
-    await searchPage.select('#doorCount-ds', value);
+    //await searchPage.select('#doorCount-ds', value);
     var mile = item.mile.trim().split(" ");
     await searchPage.$eval('#minMileage', (el, t) => el.value = t[0], mile);
 
@@ -126,6 +129,7 @@ const search = async (req, res) => {
     // await searchPage.$eval('#selectMake1-ds', el => el.value = brand[0]);
     await searchPage.waitForSelector('#dsp-upper-search-btn');
     //await searchPage.click('#dsp-upper-search-btn');
+    await new Promise(function(resolve) {setTimeout(resolve, 50000)});
     let result = await searchPage.$eval("#dsp-lower-search-btn", elem => elem.getAttribute("data-results"));
     console.log("result:", result);
     if (result == "0"){

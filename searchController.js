@@ -158,13 +158,15 @@ const search = async (req, res) => {
     let result = await searchPage.$eval("#dsp-lower-search-btn", elem => elem.getAttribute("data-results"));
     console.log("result:", result);
     if (result == "0"){
-	return res.status(200).json({result: "no price"});
+        await searchPage.close();
+	    return res.status(200).json({result: "no price"});
     }
     await searchPage.$eval("#dsp-lower-search-btn", elem => elem.click());
 	await searchPage.waitForSelector('.cBox--resultListHeader', {timeout: 60000});
 	let count = await searchPage.$eval(".cBox--resultListHeader", elem => elem.querySelector("h1:first-child").innerText);
 	count = count.split(" ");
 	if(count[0] == "0"){
+        await searchPage.close();
 		return res.status(200).json({result: "no price"});
 	}
     await searchPage.waitForSelector('.price-block');
@@ -177,6 +179,7 @@ const search = async (req, res) => {
     price = price.toFixed(3);
 	console.log("prices:", prices);
     console.log("price:", price);
+    await searchPage.close();
     return res.status(200).json({price: price + " €"});
 }
 module.exports = {

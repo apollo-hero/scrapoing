@@ -17,14 +17,7 @@ const scraperController = require('./pageController');
 
 //Start the browser and create a browser instance
 let browserInstance = browserObject.startBrowser();
-
-// Pass the browser instance to the scraper controller
-// app.get('/search', function(req, res){
-//    const data = req.body;
-//    const path = data.path;
-//    res.send("Hello World!");
-// });
-
+// -- application port -- //
 const port = process.env.PORT || 5600;
 const server = app.listen(port,()=>{
     console.log(`server up and running on port ${port}!`);

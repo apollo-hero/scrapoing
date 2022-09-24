@@ -17,9 +17,9 @@ const search = async (req, res) => {
         case "Citroen":
             temp_model = "Citroën";
           break;
-        case "220I GRAN":
+        case "Land1":
           // code block
-          temp_model = "220 GRAN";
+          temp_model = "Land Rover";
           break;
         default:
           // code block
@@ -36,13 +36,14 @@ const search = async (req, res) => {
         return links;
     }, temp_model);
 
+    let make2 = (make[0] + " " + make[1]).toUpperCase();
    let makeCode1 = await searchPage.$$eval('#selectMake1-ds > option', (links, t) => {
         // Make sure the book to be scraped is in stock
         links = links.filter(link => link.textContent.trim().toUpperCase() == t)
         // Extract the links from the data
         links = links.map(el => el.value);
         return links;
-    }, make[0] + " " + make[1]);
+    }, make2);
 
     if(makeCode1.length != 0){
 	makeCode = makeCode1;
@@ -53,16 +54,41 @@ const search = async (req, res) => {
 
     await searchPage.waitForSelector("#selectModel1-ds > option");
     let model = make[1].toUpperCase();
-    let modelCode = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
-        // Make sure the book to be scraped is in stock
-        links = links.filter(link => link.textContent.trim().toUpperCase() == t)
-        // Extract the links from the data
-        links = links.map(el => el.value);
-        return links;
-    }, model);
+    let modelCode;
+    let pos_variant = 2;
+    if (make[0] == "BMW"){
+        model = model.slice(0, model.length-2);
+        modelCode = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
+            // Make sure the book to be scraped is in stock
+            links = links.filter(link => link.textContent.trim().includes(t));
+            // Extract the links from the data
+            links = links.map(el => el.value);
+            return links;
+        }, model);    
+    } else if (make[0] == "Land"){
+        model = make[2].toUpperCase();
+        modelCode = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
+            // Make sure the book to be scraped is in stock
+            links = links.filter(link => link.textContent.trim().toUpperCase() == t);
+            // Extract the links from the data
+            links = links.map(el => el.value);
+            return links;
+        }, model);
+    } else {
+        modelCode = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
+            // Make sure the book to be scraped is in stock
+            links = links.filter(link => link.textContent.trim().toUpperCase() == t)
+            // Extract the links from the data
+            links = links.map(el => el.value);
+            return links;
+        }, model);
+    }
+    
     console.log(modelCode);
     let model1 = (make[1] + " " + make[2]).toUpperCase();
-
+    if (make[0] == "Land"){
+        model1 = (make[2] + " " + make[3]).toUpperCase();
+    }
     switch(model1) {
         case "PRO CEED":
             model1 = "pro cee'd / ProCeed";
@@ -82,6 +108,9 @@ const search = async (req, res) => {
         return links;
     }, model1);
     let model2 = (model1 + " " + make[3]).toUpperCase();
+    if (make[0] == "Land"){
+        model2 = (model1 + " " + make[4]).toUpperCase();
+    }
     let modelCode2 = await searchPage.$$eval('#selectModel1-ds > option', (links, t) => {
         // Make sure the book to be scraped is in stock
         links = links.filter(link => link.textContent.trim().toUpperCase() == t)
@@ -93,8 +122,11 @@ const search = async (req, res) => {
     if (modelCode1.length != 0) {
         console.log(typeof modelCode1);
         modelCode = modelCode1;
+        pos_variant = make[0] == "Land" ? 4 : 3;
+                
     } else if (modelCode2.length != 0) {
         modelCode = modelCode2;
+        pos_variant = make[0] == "Land" ? 5 : 4;
     }
 
     console.log("code:", modelCode, modelCode1, modelCode2, model, model1, model2);
@@ -102,7 +134,8 @@ const search = async (req, res) => {
 
     //console.log("code:",modelCode);
     //await searchPage.select('#selectModel1-ds', modelCode[0]);
-    var variant = make[make.length - 3] + " " + make[make.length - 2];
+    // var variant = make[make.length - 3] + " " + make[make.length - 2];
+    var variant = make[pos_variant];
     await searchPage.$eval('#modelDescription1-ds', (el, t) => el.value = t, variant);
     if (item.type == " Kombi") {
         await searchPage.$eval('#categories-EstateCar-ds', check => check.checked = true);
@@ -155,32 +188,67 @@ const search = async (req, res) => {
     await searchPage.waitForSelector('#dsp-upper-search-btn');
     //await searchPage.click('#dsp-upper-search-btn');
     await new Promise(function(resolve) {setTimeout(resolve, 50000)});
-    let result = await searchPage.$eval("#dsp-lower-search-btn", elem => elem.getAttribute("data-results"));
-    console.log("result:", result);
-    if (result == "0"){
-        await searchPage.close();
-	    return res.status(200).json({result: "no price"});
-    }
+    
     await searchPage.$eval("#dsp-lower-search-btn", elem => elem.click());
 	await searchPage.waitForSelector('.cBox--resultListHeader', {timeout: 60000});
+
+    let pagePromise = async () => {
+        await searchPage.$eval(".cBox-body.u-margin-bottom-12 > div:last-child > a", elem => elem.click());
+        await searchPage.waitForSelector('.cBox--resultListHeader', {timeout: 60000});
+        let count = await searchPage.$eval(".cBox--resultListHeader", elem => elem.querySelector("h1:first-child").innerText);
+	    count = count.split(" ");
+        if(count[0] == "0"){
+            // await searchPage.close();
+            // return res.status(200).json({result: "no price"});
+            // let dutchmans = document.querySelectorAll('.btn--dutchman');
+            return await pagePromise();
+    
+        } else {
+            await searchPage.waitForSelector('.price-block');
+            let prices = await searchPage.$$eval('.price-block', prices => {
+                // Extract the links from the data
+                prices = prices.map(el => el.querySelector('span:first-child').textContent);
+                return prices;
+            });
+            let price = prices.reduce((a, b) => parseFloat(a) + parseFloat(b), 0)/prices.length;
+            price = price.toFixed(3);
+            console.log("prices1:", prices);
+            console.log("price1:", price);
+            //await searchPage.close();
+            return price;
+            // return res.status(200).json({price: price + " €"});
+        }
+        // resolve(data);
+        //await newPage.close();
+    };
+
+    //let currentPageData = await pagePromise(urls[1]);
+
 	let count = await searchPage.$eval(".cBox--resultListHeader", elem => elem.querySelector("h1:first-child").innerText);
 	count = count.split(" ");
+    console.log("count:", count);
 	if(count[0] == "0"){
+        // await searchPage.close();
+		// return res.status(200).json({result: "no price"});
+        // let dutchmans = document.querySelectorAll('.btn--dutchman');
+        // await searchPage.$eval(".cBox-body.u-margin-bottom-12 > div:last-child > a", elem => elem.click());
+        let price1 = await pagePromise();
+        return res.status(200).json({price: price1 + " €"});
+	} else {
+        await searchPage.waitForSelector('.price-block');
+        let prices = await searchPage.$$eval('.price-block', prices => {
+        // Extract the links from the data
+        prices = prices.map(el => el.querySelector('span:first-child').textContent);
+        return prices;
+        });
+        let price = prices.reduce((a, b) => parseFloat(a) + parseFloat(b), 0)/prices.length;
+        price = price.toFixed(3);
+        console.log("prices:", prices);
+        console.log("price:", price);
         await searchPage.close();
-		return res.status(200).json({result: "no price"});
-	}
-    await searchPage.waitForSelector('.price-block');
-    let prices = await searchPage.$$eval('.price-block', prices => {
-	// Extract the links from the data
-	prices = prices.map(el => el.querySelector('span:first-child').textContent);
-	return prices;
-    });
-    let price = prices.reduce((a, b) => parseFloat(a) + parseFloat(b), 0)/prices.length;
-    price = price.toFixed(3);
-	console.log("prices:", prices);
-    console.log("price:", price);
-    await searchPage.close();
-    return res.status(200).json({price: price + " €"});
+        return res.status(200).json({price: price + " €"});
+    }
+    
 }
 module.exports = {
     search
